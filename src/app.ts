@@ -1,9 +1,9 @@
 import fastify from "fastify";
 import dotenv from "dotenv"
 import mongoose from "mongoose"
-import authRoutes from "./auth";
-import activityRoutes from "./activity";
-
+import authRoutes from "./controllers/authController";
+import activityRoutes from "./controllers/activityController";
+import userRoutes from "./controllers/userController";
 
 dotenv.config();
 
@@ -21,6 +21,7 @@ mongoose
 
 app.register(authRoutes)
 app.register(activityRoutes);
+app.register(userRoutes);
 
 const start = async () => {
   try {
