@@ -4,6 +4,9 @@ import mongoose from "mongoose"
 import authRoutes from "./controllers/authController";
 import activityRoutes from "./controllers/activityController";
 import userRoutes from "./controllers/userController";
+import fastifyCookie from "@fastify/cookie"
+import fastifyJwt from "@fastify/jwt";
+import { FastifyRequest, FastifyReply } from "fastify";
 
 dotenv.config();
 
@@ -19,9 +22,25 @@ mongoose
   .then(() => app.log.info("✅ Conectado ao MongoDB!"))
   .catch(err => app.log.error("❌ Erro ao conectar ao MongoDB:", err));
 
+  app.register(fastifyJwt, {
+    secret: process.env.JWT_SECRET || "supersecretkey"
+  })
+
+  app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
+    try {
+      await request.jwtVerify();
+    } catch (error) {
+      reply.status(401).send({ message: "Token inválido ou não fornecido!"})
+    }
+  })
+  
 app.register(authRoutes)
 app.register(activityRoutes);
 app.register(userRoutes);
+app.register(fastifyCookie, {
+  secret:"supersecretkey",
+  parseOptions: {}
+});
 
 const start = async () => {
   try {
