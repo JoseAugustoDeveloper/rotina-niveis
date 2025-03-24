@@ -7,14 +7,18 @@ import userRoutes from "./controllers/userController";
 import fastifyCookie from "@fastify/cookie"
 import fastifyJwt from "@fastify/jwt";
 import { FastifyRequest, FastifyReply } from "fastify";
+import fastifyCors from '@fastify/cors';
 
 dotenv.config();
 
 const app = fastify({ logger: true });
 
-// app.get('/', async (request, reply) => {
-//   return { message: "servidor rodando" }
-// })
+app.register(fastifyCors, {
+  origin: 'http://127.0.0.1:5500', // Permitir apenas seu front-end específico
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
+  credentials: true
+});
 
 const mongoUri = process.env.MONG_URI || "mongodb://localhost/rotina-niveis";
 mongoose
@@ -29,6 +33,7 @@ mongoose
   app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
     try {
       await request.jwtVerify();
+      console.log("Usuário autenticado:", request.user);
     } catch (error) {
       reply.status(401).send({ message: "Token inválido ou não fornecido!"})
     }
@@ -38,8 +43,7 @@ app.register(authRoutes)
 app.register(activityRoutes);
 app.register(userRoutes);
 app.register(fastifyCookie, {
-  secret:"supersecretkey",
-  parseOptions: {}
+  secret:"supersecretkey"
 });
 
 const start = async () => {

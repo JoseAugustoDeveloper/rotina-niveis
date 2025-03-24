@@ -4,12 +4,7 @@ import jwt from 'fastify-jwt';
 import User from "../models/userModel";
 
 export default async function authRoutes(app: FastifyInstance) {
-  // app.register(jwt,
-  //   {
-  //     secret: "superscretkey",
-  //   });
-
-
+  
   app.post("/register", async (request, reply) => {
     const { nickname, email, password, isPrivate } = request.body as { nickname: string, email: string, password: string, isPrivate?: boolean };
 
@@ -49,15 +44,14 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ message: "Senha incorreta!" })
     }
 
-    const token = app.jwt.sign({ id: user._id, email:user.email }, { expiresIn: "1h" });
+    const token = app.jwt.sign({ id: user._id, email:user.email, nickname: user.nickname }, { expiresIn: "1h" });
     console.log("🔹 Token gerado:", token);
     reply.setCookie("auth_token", token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: false,
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/"
     })
-
     user.isOnline = true;
     await user.save();
 
