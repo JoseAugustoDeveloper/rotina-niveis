@@ -13,6 +13,12 @@ dotenv.config();
 
 const app = fastify({ logger: true });
 
+app.register(fastifyCookie, {
+  secret:"supersecretkey"
+});
+app.register(authRoutes)
+app.register(activityRoutes);
+app.register(userRoutes);
 app.register(fastifyCors, {
   origin: 'http://127.0.0.1:5500', // Permitir apenas seu front-end específico
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
@@ -39,12 +45,7 @@ mongoose
     }
   })
   
-app.register(authRoutes)
-app.register(activityRoutes);
-app.register(userRoutes);
-app.register(fastifyCookie, {
-  secret:"supersecretkey"
-});
+
 
 const start = async () => {
   try {
