@@ -2,6 +2,10 @@ import { FastifyInstance } from "fastify";
 import Activity from "../models/activityModel";
 import User from "../models/userModel";
 import mongoose from "mongoose";
+import { authenticate } from "../middlewares/authenticate";
+import type { AuthenticatedRequest } from "types";
+import { FastifyReply, FastifyRequest } from 'fastify';
+import { UpdateQuery } from 'mongoose';
 
 export default async function (app: FastifyInstance) {
   app.post("/activities", async (request, reply) => {
@@ -42,5 +46,116 @@ export default async function (app: FastifyInstance) {
       console.error("❌ Erro ao registrar atividade:", error);
       reply.status(500).send({ error: "Erro ao registrar atividade" });
     }
-  })
+  });
+
+  app.post('/activity/add',{ preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+    try {
+       const body = request.body as {
+      name: string;
+      category: string;
+      points: number;
+      isRecurring?: boolean;
+      date: string;
+      description: string;
+    };
+
+      const { name, category, points, isRecurring, date, description } = body;
+
+      if (!name || !category || !points || !date || !description) {
+        return reply.status(400).send({ message: "Todos os campos são obrigatórios!" });
+      }
+  
+      const newActivity = new Activity({
+        userId: request.userId, 
+        name, 
+        category, 
+        points, 
+        isRecurring: isRecurring || false,
+        date: new Date(date),
+        description,
+      });
+  
+      await newActivity.save();
+  
+      return reply.send({ message: "Atividade adicionada com sucesso!", activity: newActivity });
+    } catch (error) {
+      console.error("Erro ao adicionar atividade:", error);
+      return reply.status(500).send({ message: "Erro ao adicionar atividade", error });
+    }
+  });
+
+  app.patch('/activity/complete:/id', { preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const { id } = request.params as { id: string};
+      const activity = await Activity.findOneAndUpdate(
+        { _id: id, userId: request.userId },
+        { completed: true },
+        { new: true }
+      );
+      if (!activity) {
+        return reply.status(404).send({ message: "Atividade não encontrada!" });
+      }
+      reply.send(activity);
+    } catch (error) {
+      reply.status(500).send({ message: "Erro ao marcar como concluída" });
+    }
+  });
+
+  app.get('/activities', { preHandler: [authenticate]}, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const { category, date, status } = request.query as {
+      category: String,
+      date: Date,
+      status: String
+      }
+      
+      const filter: any = { userId: request.userId };
+      if (category) {
+        filter.category = category
+      }
+      if (date) {
+        filter.date = new Date(date)
+      }
+      if (status === 'completed') {
+        filter.completed = true
+      }
+      if (status === 'pending') {
+        filter.completed = false
+      }
+
+      const activies = await Activity.find(filter);
+      reply.send(activies)
+    } catch (error) {
+      reply.status(500).send({ message: "Erro ao buscar atividades!" });
+    }
+  });
+
+  // app.put('/activity/edit/:id', { preHandler: [authenticate] }, async (request: FastifyRequest<{ Params: { id: string }, Body: UpdateQuery<IActivity> }>, reply: FastifyReply) => {
+  //   try {
+  //     const { id } = request.params as { id: string };
+  //     const updateActivityData = request.body;
+      
+  //     const updateActivity = await Activity.findOneAndUpdate(
+  //       { _id: id, userId: request.userId },
+  //       updateActivityData,
+  //       { new: true }
+  //     );
+  //     if (!updateActivity) {
+  //       return reply.status(404).send({ message: "Atividade não encontrada!"})
+  //     }
+  //   } catch (error) {
+  //     return reply.status(500).send({ message: "Erro ao editar atividade!"})
+  //   }
+  // });
+
+  app.delete('/activity/delete/:id', { preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+    try {
+      const { id } = request.params as { id: string};
+      const deletedActivity = await Activity.findOneAndDelete({ _id: id, userId: request.userId });
+      if (!deletedActivity) return reply.status(404).send({ message: 'Atividade não encontrada' });
+      reply.send({ message: 'Atividade removida com sucesso' });
+    } catch (error) {
+      reply.status(500).send({ message: 'Erro ao deletar atividade' });
+    }
+  });
 }

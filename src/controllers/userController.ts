@@ -57,7 +57,8 @@ export default async function userRoutes(app: FastifyInstance) {
   );
 
   // Buscar usuarios
-  app.get("/user/search", async (request, reply) => {
+  app.get(
+    "/user/search", async (request, reply) => {
     try {
       const { nickname } = request.query as { nickname: string };
       if (!nickname) {
@@ -77,7 +78,8 @@ export default async function userRoutes(app: FastifyInstance) {
   });
 
   // Atualizar perfil do usuário
-  app.put("/user/profile", async (request, reply) => {
+  app.put(
+    "/user/profile", async (request, reply) => {
     try {
       await request.jwtVerify();
 
@@ -133,7 +135,8 @@ export default async function userRoutes(app: FastifyInstance) {
   );
 
   // Adicionar amigo
-  app.post("/user/add-friend", { preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+  app.post(
+    "/user/add-friend", { preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
     try {
       await request.jwtVerify();
 
@@ -188,8 +191,8 @@ export default async function userRoutes(app: FastifyInstance) {
       const token = app.jwt.sign({ id: user._id, email:user.email, nickname: user.nickname }, { expiresIn: "1h" });
       reply.setCookie("auth_token", token, {
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: false,
+        sameSite: "lax",
         path: "/"
       })
 

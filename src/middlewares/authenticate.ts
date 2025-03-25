@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 export async function authenticate(request: AuthenticatedRequest, reply: FastifyReply) {
   try {
     console.log("🔎 Cookies recebidos:", request.cookies);
-    const token = request.cookies.auth_token; // Busca o token do cookie
+    const token = request.cookies.auth_token || request.headers.authorization?.split(' ')[1];// Busca o token do cookie
     
     console.log("Token recebido:", token); // LOG IMPORTANTE
     

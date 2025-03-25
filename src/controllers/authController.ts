@@ -47,7 +47,7 @@ export default async function authRoutes(app: FastifyInstance) {
     const token = app.jwt.sign({ id: user._id, email:user.email, nickname: user.nickname }, { expiresIn: "1h" });
     console.log("🔹 Token gerado:", token);
     reply.setCookie("auth_token", token, {
-      httpOnly: false,
+      httpOnly: true,
       secure: false,
       sameSite: "lax",
       path: "/"
