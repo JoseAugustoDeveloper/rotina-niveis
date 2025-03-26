@@ -192,7 +192,7 @@ export default async function userRoutes(app: FastifyInstance) {
       reply.setCookie("auth_token", token, {
         httpOnly: true,
         secure: false,
-        sameSite: "lax",
+        sameSite: "none",
         path: "/"
       })
 

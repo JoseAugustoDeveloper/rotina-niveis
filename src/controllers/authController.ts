@@ -48,8 +48,8 @@ export default async function authRoutes(app: FastifyInstance) {
     console.log("🔹 Token gerado:", token);
     reply.setCookie("auth_token", token, {
       httpOnly: true,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       path: "/"
     })
     user.isOnline = true;
