@@ -48,7 +48,7 @@ export default async function (app: FastifyInstance) {
     }
   });
 
-  app.post('/activity/add',{ preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+  app.post('/activity/add',{ preHandler: [app.authenticate] }, async (request, reply) => {
     try {
        const body = request.body as {
       name: string;
@@ -84,7 +84,7 @@ export default async function (app: FastifyInstance) {
     }
   });
 
-  app.patch('/activity/complete:/id', { preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+  app.patch('/activity/complete:/id', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string};
       const activity = await Activity.findOneAndUpdate(
@@ -101,7 +101,7 @@ export default async function (app: FastifyInstance) {
     }
   });
 
-  app.get('/activities', { preHandler: [authenticate]}, async (request: AuthenticatedRequest, reply) => {
+  app.get('/activities', { preHandler: [app.authenticate]}, async (request, reply) => {
     try {
       const { category, date, status } = request.query as {
       category: String,
@@ -130,7 +130,7 @@ export default async function (app: FastifyInstance) {
     }
   });
 
-  // app.put('/activity/edit/:id', { preHandler: [authenticate] }, async (request: FastifyRequest<{ Params: { id: string }, Body: UpdateQuery<IActivity> }>, reply: FastifyReply) => {
+  // app.put('/activity/edit/:id', { preHandler: [app.authenticate] }, async (request: FastifyRequest<{ Params: { id: string }, Body: UpdateQuery<IActivity> }>, reply: FastifyReply) => {
   //   try {
   //     const { id } = request.params as { id: string };
   //     const updateActivityData = request.body;
@@ -148,7 +148,7 @@ export default async function (app: FastifyInstance) {
   //   }
   // });
 
-  app.delete('/activity/delete/:id', { preHandler: [authenticate] }, async (request: AuthenticatedRequest, reply) => {
+  app.delete('/activity/delete/:id', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const { id } = request.params as { id: string};
       const deletedActivity = await Activity.findOneAndDelete({ _id: id, userId: request.userId });

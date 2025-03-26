@@ -2,11 +2,12 @@
 import { FastifyReply } from "fastify";
 import { AuthenticatedRequest } from "../types";
 import mongoose from "mongoose";
+import jwt from 'jsonwebtoken'
 
 export async function authenticate(request: AuthenticatedRequest, reply: FastifyReply) {
   try {
     console.log("🔎 Cookies recebidos:", request.cookies);
-    const token = request.cookies.auth_token || request.headers.authorization?.split(' ')[1];// Busca o token do cookie
+    const token = request.cookies.auth_token; // Pega o token do cookie
     
     console.log("Token recebido:", token); // LOG IMPORTANTE
     
@@ -14,9 +15,13 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
       return reply.status(401).send({ message: "Token não fornecido!" });
     }
 
-    const decoded = await request.jwtVerify<{ id: string }>(); // Usando a verificação de JWT do fastify
+    const decoded = jwt.verify(token, "supersecretkey") as { id: string; email: string} // Usando a verificação de JWT do fastify
    
-    request.userId = new mongoose.Types.ObjectId(decoded.id); // Definindo o ID do usuário no request
+    request.user = {
+      id: new mongoose.Types.ObjectId(decoded.id),
+      email: decoded.email,
+    };
+ // Definindo o ID do usuário no request
 
     console.log("✅ Usuário autenticado com ID:", request.userId);
   } catch (error) {

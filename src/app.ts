@@ -5,13 +5,19 @@ import authRoutes from "./controllers/authController";
 import activityRoutes from "./controllers/activityController";
 import userRoutes from "./controllers/userController";
 import fastifyCookie from "@fastify/cookie"
-import fastifyJwt from "@fastify/jwt";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { FastifyRequest, FastifyReply } from "fastify";
 import fastifyCors from '@fastify/cors';
 
 dotenv.config();
 
 const app = fastify({ logger: true });
+
+declare module "fastify" {
+  interface FastifyRequest {
+    userId?: string;
+  }
+}
 
 app.register(fastifyCookie, {
   secret:"supersecretkey"
@@ -32,14 +38,23 @@ mongoose
   .then(() => app.log.info("✅ Conectado ao MongoDB!"))
   .catch(err => app.log.error("❌ Erro ao conectar ao MongoDB:", err));
 
-  app.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || "supersecretkey"
-  })
+  const SECRET_KEY = process.env.JWT_SECRET || "supersecretkey"
+ 
+  interface AuthTokenPayload extends JwtPayload {
+    id: string;
+    email: string;
+  }
 
+  declare module "fastify" {
+    interface FastifyRequest {
+      userId?: string;
+    }
+  }
   app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
+    const token = request.cookies.auth_token;
     try {
-      await request.jwtVerify();
-      console.log("Usuário autenticado:", request.user);
+      const decoded = jwt.verify(token as string, SECRET_KEY ) as unknown as AuthTokenPayload;
+      request.userId = decoded.id
     } catch (error) {
       reply.status(401).send({ message: "Token inválido ou não fornecido!"})
     }

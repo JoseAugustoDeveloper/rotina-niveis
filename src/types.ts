@@ -1,8 +1,20 @@
 import { FastifyRequest } from "fastify";
 import mongoose from "mongoose";
 
+declare module "fastify" {
+  interface FastifyRequest {
+    user: {
+      id: mongoose.Types.ObjectId;
+      email: string;
+    };
+  }
+}
+
 export interface AuthenticatedRequest extends FastifyRequest {
-  userId?: mongoose.Types.ObjectId;
+  user: {
+    id: mongoose.Types.ObjectId;
+    email: string;
+  };
 }
 
 export interface JwtPayload {

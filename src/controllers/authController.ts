@@ -1,7 +1,8 @@
 import { FastifyInstance } from "fastify";
-import bcrypt from 'bcryptjs'
-import jwt from 'fastify-jwt';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from "../models/userModel";
+
 
 export default async function authRoutes(app: FastifyInstance) {
   
@@ -44,7 +45,7 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.status(401).send({ message: "Senha incorreta!" })
     }
 
-    const token = app.jwt.sign({ id: user._id, email:user.email, nickname: user.nickname }, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, email:user.email, nickname: user.nickname }, "supersecretkey", { expiresIn: "1h" });
     console.log("🔹 Token gerado:", token);
     reply.setCookie("auth_token", token, {
       httpOnly: true,
@@ -60,7 +61,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
   app.post("/logout", async (request, reply) => {
     try {
-      await request.jwtVerify(); // Verifica se o usuário está autenticado
+       // Verifica se o usuário está autenticado
       const user = await User.findOne({ email: (request.user as { email: string }).email });
 
       if (!user) {
@@ -78,14 +79,15 @@ export default async function authRoutes(app: FastifyInstance) {
     }
   });
 
-  app.get('/profile', async (request, reply) => {
+
+  app.get('/profile', async (request, reply) => {""
     try {
       const token = request.cookies.auth_token;
       if (!token) {
         return reply.status(401).send({ message: "Não autenticado!" })
-      }
+      }""
 
-      const decoded = app.jwt.verify<{ email: string }>(token);
+      const decoded = jwt.verify(token, "supersecretkey") as { email: string};
       const user = await User.findOne({ email: decoded.email });
 
       if (!user) {
@@ -98,9 +100,9 @@ export default async function authRoutes(app: FastifyInstance) {
     }
   })
 
-  app.post("/add-points", async (request, reply) => {
+  app.post("/add-points", { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      await request.jwtVerify();
+     
       const { points } = request.body as { points: number };
 
       const user = await User.findOne({ email: (request.user as { email: string }).email })
