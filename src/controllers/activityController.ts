@@ -1,10 +1,8 @@
 import { FastifyInstance } from "fastify";
 import Activity from "../models/activityModel";
+import { IActivity } from "../models/activityModel";
 import User from "../models/userModel";
 import mongoose from "mongoose";
-import { authenticate } from "../middlewares/authenticate";
-import type { AuthenticatedRequest } from "types";
-import { FastifyReply, FastifyRequest } from 'fastify';
 import { UpdateQuery } from 'mongoose';
 
 export default async function (app: FastifyInstance) {
@@ -86,16 +84,32 @@ export default async function (app: FastifyInstance) {
 
   app.patch('/activity/complete:/id', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      const { id } = request.params as { id: string};
+      const { id } = request.params as { id: string };
       const activity = await Activity.findOneAndUpdate(
         { _id: id, userId: request.userId },
         { completed: true },
         { new: true }
       );
+      
       if (!activity) {
         return reply.status(404).send({ message: "Atividade não encontrada!" });
       }
-      reply.send(activity);
+
+      const user = await User.findById(request.userId);
+      if (!user) {
+        return reply.status(404).send({ message: "Usuário não encontrado!" });
+      }
+      
+      user.points += activity.points;
+      const completedActivities = await Activity.countDocuments({ userId: request.userId, completed: true });
+      if (completedActivities >= 10 && !user.achievements.includes("Troféu das 10 atividades")) {
+        user.achievements.push("Troféu das 10 atividades");
+      }
+      
+      await user.save();
+      
+      reply.send({ message: "Atividade concluída!", activity, points: user.points, level: user.level, achievements: user.achievements });
+    
     } catch (error) {
       reply.status(500).send({ message: "Erro ao marcar como concluída" });
     }
@@ -130,23 +144,26 @@ export default async function (app: FastifyInstance) {
     }
   });
 
-  // app.put('/activity/edit/:id', { preHandler: [app.authenticate] }, async (request: FastifyRequest<{ Params: { id: string }, Body: UpdateQuery<IActivity> }>, reply: FastifyReply) => {
-  //   try {
-  //     const { id } = request.params as { id: string };
-  //     const updateActivityData = request.body;
+  app.put<{ Params: { id: string }, Body: UpdateQuery<IActivity> }>(
+    '/activity/edit/:id', 
+    { preHandler: [app.authenticate] }, 
+    async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      const updateActivityData = request.body as UpdateQuery<IActivity>;
       
-  //     const updateActivity = await Activity.findOneAndUpdate(
-  //       { _id: id, userId: request.userId },
-  //       updateActivityData,
-  //       { new: true }
-  //     );
-  //     if (!updateActivity) {
-  //       return reply.status(404).send({ message: "Atividade não encontrada!"})
-  //     }
-  //   } catch (error) {
-  //     return reply.status(500).send({ message: "Erro ao editar atividade!"})
-  //   }
-  // });
+      const updateActivity = await Activity.findOneAndUpdate(
+        { _id: id, userId: request.userId },
+        updateActivityData,
+        { new: true }
+      );
+      if (!updateActivity) {
+        return reply.status(404).send({ message: "Atividade não encontrada!"})
+      }
+    } catch (error) {
+      return reply.status(500).send({ message: "Erro ao editar atividade!"})
+    }
+  });
 
   app.delete('/activity/delete/:id', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {

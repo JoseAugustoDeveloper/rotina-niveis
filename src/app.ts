@@ -53,7 +53,7 @@ mongoose
   app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
     const token = request.cookies.auth_token;
     try {
-      const decoded = jwt.verify(token as string, SECRET_KEY ) as unknown as AuthTokenPayload;
+      const decoded = jwt.verify(token as string, "supersecretkey" ) as unknown as AuthTokenPayload;
       request.userId = decoded.id
     } catch (error) {
       reply.status(401).send({ message: "Token inválido ou não fornecido!"})

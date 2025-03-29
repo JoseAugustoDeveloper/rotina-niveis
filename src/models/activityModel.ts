@@ -1,13 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IActivity extends Document {
+export interface IActivity extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
   category: string;
   date: Date;
   isRecurring: boolean;
   completed: boolean;
-  description: string;
+  description?: string;
   points: number;
   createdAt: Date;
 }
@@ -19,7 +19,7 @@ const ActivitySchema: Schema = new Schema({
   date: { type: Date, required: true },
   isRecurring: { type: Boolean, default: false },
   completed: { type: Boolean, default: false },
-  description: { type: String, required: true },
+  description: { type: String },
   points: { type: Number, required: true},
   createdAt: { type: Date, default: Date.now }
 });

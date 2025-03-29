@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { IActivity } from './activityModel';
 
 interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
@@ -11,6 +12,8 @@ interface IUser extends Document {
   isPrivate: boolean;
   friends: mongoose.Types.ObjectId[];
   friendRequests: mongoose.Types.ObjectId[];
+  achievements: string[];
+  activities: IActivity[];
 }
 
 const UserSchema: Schema = new Schema({
@@ -22,7 +25,9 @@ const UserSchema: Schema = new Schema({
   isOnline: { type: Boolean, default: false },
   isPrivate: { type: Boolean, default: false },
   friends: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
-  friendRequests: [{ type: mongoose.Schema.ObjectId, ref: "User"}]
+  friendRequests: [{ type: mongoose.Schema.ObjectId, ref: "User"}],
+  achievements: { type: [String], default: [] },
+  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }]
   
 });
 
