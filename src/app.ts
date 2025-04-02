@@ -8,6 +8,7 @@ import fastifyCookie from "@fastify/cookie"
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { FastifyRequest, FastifyReply } from "fastify";
 import fastifyCors from '@fastify/cors';
+import { authenticate } from "./middlewares/authenticate";
 
 dotenv.config();
 
@@ -44,16 +45,20 @@ mongoose
       userId?: string;
     }
   }
-  app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
-    const token = request.cookies.auth_token;
-    try {
-      const decoded = jwt.verify(token as string, "supersecretkey" ) as unknown as AuthTokenPayload;
-      request.user = { id: new mongoose.Types.ObjectId(decoded.id), email: decoded.email}
-    } catch (error) {
-      reply.status(401).send({ message: "Token inválido ou não fornecido!"})
-    }
-  })
+  // app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
+  //   console.log("Cookies recebidos:", request.cookies);
+  //   console.log("Headers recebidos:", request.headers);
+  //   const token = request.cookies.auth_token || request.headers.authorization?.replace("Bearer ", "");
+  //   console.log("Token extraído:", token);
+  //   try {
+  //     const decoded = jwt.verify(token as string, "supersecretkey" ) as unknown as AuthTokenPayload;
+  //     request.user = { id: new mongoose.Types.ObjectId(decoded.id), email: decoded.email}
+  //   } catch (error) {
+  //     reply.status(401).send({ message: "Token inválido ou não fornecido!"})
+  //   }
+  // })
   
+  app.decorate("authenticate", authenticate as any)
 
 
 const start = async () => {

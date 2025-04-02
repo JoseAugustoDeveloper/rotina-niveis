@@ -282,11 +282,16 @@ export default async function userRoutes(app: FastifyInstance) {
   app.get(
     "/user/activities", { preHandler: [app.authenticate] },
     async (request, reply) => {
+      console.log("Request recebido para /user/activities");
+      console.log("User ID:", request.userId);
+    
       try {
         const user = await User.findById(request.userId).populate("activities", "date name category points");
         if(!user) {
           return reply.status(404).send({ message: "Usuário não encontrado" });
         }
+
+        console.log("Atividades encontradas:", user.activities);
 
         const recentActivities = user.activities.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
         return reply.send(recentActivities);

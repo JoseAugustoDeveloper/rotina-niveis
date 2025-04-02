@@ -7,7 +7,8 @@ import jwt from 'jsonwebtoken'
 export async function authenticate(request: AuthenticatedRequest, reply: FastifyReply) {
   try {
     console.log("🔎 Cookies recebidos:", request.cookies);
-    const token = request.cookies.auth_token; // Pega o token do cookie
+    console.log("Headers recebidos:", request.headers);
+    const token = request.cookies.auth_token || request.headers.authorization?.replace("Bearer ", "");; // Pega o token do cookie
     
     console.log("Token recebido:", token); // LOG IMPORTANTE
     

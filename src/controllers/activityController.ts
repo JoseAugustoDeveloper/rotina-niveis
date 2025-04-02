@@ -74,6 +74,10 @@ export default async function (app: FastifyInstance) {
       });
   
       await newActivity.save();
+
+      await User.findByIdAndUpdate(request.userId, {
+        $push: { activities: newActivity._id }
+      });
   
       return reply.send({ message: "Atividade adicionada com sucesso!", activity: newActivity });
     } catch (error) {
