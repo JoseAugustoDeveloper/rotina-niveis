@@ -20,7 +20,7 @@ app.register(authRoutes)
 app.register(activityRoutes);
 app.register(userRoutes);
 app.register(fastifyCors, {
-  origin: 'http://127.0.0.1:5500', // Permitir apenas seu front-end específico
+  origin: '   http://localhost:5173', // Permitir apenas seu front-end específico
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
   allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
   credentials: true
