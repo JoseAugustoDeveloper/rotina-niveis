@@ -13,12 +13,6 @@ dotenv.config();
 
 const app = fastify({ logger: true });
 
-declare module "fastify" {
-  interface FastifyRequest {
-    userId?: string;
-  }
-}
-
 app.register(fastifyCookie, {
   secret:"supersecretkey"
 });
@@ -54,7 +48,7 @@ mongoose
     const token = request.cookies.auth_token;
     try {
       const decoded = jwt.verify(token as string, "supersecretkey" ) as unknown as AuthTokenPayload;
-      request.userId = decoded.id
+      request.user = { id: new mongoose.Types.ObjectId(decoded.id), email: decoded.email}
     } catch (error) {
       reply.status(401).send({ message: "Token inválido ou não fornecido!"})
     }

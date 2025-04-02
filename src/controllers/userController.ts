@@ -3,7 +3,7 @@ import User from "../models/userModel";
 import Friend from "../models/friendModel";
 import { calculateLevel } from "../utils/calculateLevel";
 import { calculateWeeklyStats } from "../utils/statistics";
-import Activity from "models/activityModel";
+import Activity from "../models/activityModel";
 import { FastifyRequest, FastifyReply } from "fastify";
 import type mongoose from "mongoose";
 

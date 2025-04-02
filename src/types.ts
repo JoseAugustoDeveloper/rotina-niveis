@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 declare module "fastify" {
   interface FastifyRequest {
-    user: {
+    user?: {
       id: mongoose.Types.ObjectId;
       email: string;
     };

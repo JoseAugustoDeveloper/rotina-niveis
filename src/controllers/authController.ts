@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from "../models/userModel";
+import "../types"
 
 
 export default async function authRoutes(app: FastifyInstance) {
