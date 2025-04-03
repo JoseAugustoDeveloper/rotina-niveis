@@ -146,7 +146,7 @@ export default async function userRoutes(app: FastifyInstance) {
         const { nickname } = request.body as { nickname: string };
         console.log("Nickname recebido:", nickname); // LOG PARA VERIFICAR DADO ENVIADO
 
-        const user = await User.findById(request.userId);
+        const user = await User.findById(request.user?.id);
 
         console.log("Usuário autenticado:", user); // LOG PARA VERIFICAR SE O USUÁRIO FOI ENCONTRADO
 
@@ -208,7 +208,7 @@ export default async function userRoutes(app: FastifyInstance) {
     async (request, reply) => {
       try {
         const { requestId } = request.body as { requestId: string };
-        const user = await User.findById(request.userId);
+        const user = await User.findById(request.user?.id);
         const requester = await User.findById(requestId);
 
         if (!user || !requester) {
@@ -265,7 +265,7 @@ export default async function userRoutes(app: FastifyInstance) {
     "/user/level",
     async function getUserLevel(request: FastifyRequest, reply: FastifyReply) {
       try {
-        const user = await User.findById(request.userId);
+        const user = await User.findById(request.user?.id);
         if (!user)
           return reply.status(404).send({ message: "Usuário não encontrado" });
 
@@ -283,10 +283,10 @@ export default async function userRoutes(app: FastifyInstance) {
     "/user/activities", { preHandler: [app.authenticate] },
     async (request, reply) => {
       console.log("Request recebido para /user/activities");
-      console.log("User ID:", request.userId);
+      console.log("User ID:", request.user?.id);
     
       try {
-        const user = await User.findById(request.userId).populate("activities", "date name category points");
+        const user = await User.findById(request.user?.id).populate("activities", "date name category points");
         if(!user) {
           return reply.status(404).send({ message: "Usuário não encontrado" });
         }

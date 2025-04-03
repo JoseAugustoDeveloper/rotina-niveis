@@ -24,7 +24,7 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
     };
  // Definindo o ID do usuário no request
 
-    console.log("✅ Usuário autenticado com ID:", request.userId);
+    console.log("✅ Usuário autenticado com ID:", request.user.id);
   } catch (error) {
     console.error("❌ Erro na autenticação:", error);
     return reply.status(401).send({ message: "Token inválido ou não fornecido!" });
