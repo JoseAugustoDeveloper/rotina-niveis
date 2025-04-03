@@ -64,7 +64,7 @@ export default async function (app: FastifyInstance) {
       }
   
       const newActivity = new Activity({
-        userId: request.userId, 
+        userId: request.user?.id, 
         name, 
         category, 
         points, 
@@ -75,7 +75,7 @@ export default async function (app: FastifyInstance) {
   
       await newActivity.save();
 
-      await User.findByIdAndUpdate(request.userId, {
+      await User.findByIdAndUpdate(request.user?.id, {
         $push: { activities: newActivity._id }
       });
   

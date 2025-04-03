@@ -305,7 +305,7 @@ export default async function userRoutes(app: FastifyInstance) {
     "/user/statistics", { preHandler: [app.authenticate] },
     async (request, reply) => {
       try {
-        const user = await User.findById(request.userId);
+        const user = await User.findById(request.user?.id);
         if(!user) {
           return reply.status(404).send({ message: "Usuário não encontrado" });
         }
