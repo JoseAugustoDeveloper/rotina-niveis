@@ -17,7 +17,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
     const existingNickname = await User.findOne({ nickname });
     if (existingNickname) {
-      return reply.status(200).send({ message: "Nickname já está sendo usado!"})
+      return reply.status(404).send({ message: "Nickname já está sendo usado!"})
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
