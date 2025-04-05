@@ -6,6 +6,7 @@ declare module "fastify" {
     user?: {
       id: mongoose.Types.ObjectId;
       email: string;
+      nickname: string;
     };
   }
 }
@@ -14,6 +15,7 @@ export interface AuthenticatedRequest extends FastifyRequest {
   user: {
     id: mongoose.Types.ObjectId;
     email: string;
+    nickname: string
   };
 }
 

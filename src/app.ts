@@ -2,7 +2,6 @@ import fastify from "fastify";
 import dotenv from "dotenv"
 import mongoose from "mongoose"
 import authRoutes from "./controllers/authController";
-import activityRoutes from "./controllers/activityController";
 import userRoutes from "./controllers/userController";
 import fastifyCookie from "@fastify/cookie"
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -18,7 +17,6 @@ app.register(fastifyCookie, {
   secret:"supersecretkey"
 });
 app.register(authRoutes)
-app.register(activityRoutes);
 app.register(userRoutes);
 app.register(fastifyCors, {
   origin: '   http://localhost:5173', // Permitir apenas seu front-end específico

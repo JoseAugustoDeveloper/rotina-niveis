@@ -20,7 +20,7 @@ declare module "fastify" {
 export default async function userRoutes(app: FastifyInstance) {
   // Buscar perfil do usuário
   app.get(
-    "/user/profile",
+    "/user/perfil",
     { preHandler: [app.authenticate] },
     async (request, reply) => {
       try {
@@ -58,6 +58,41 @@ export default async function userRoutes(app: FastifyInstance) {
     }
   );
 
+    // Atualizar perfil do usuário
+    app.put(
+      "/user/perfil",
+      { preHandler: [app.authenticate] },
+      async (request, reply) => {
+        try {
+          const { email } = request.user as { email: string };
+          const { newEmail, password } = request.body as {
+            newEmail?: string;
+            password?: string;
+          };
+          console.log("Token verificado!");
+  
+          console.log("Usuário no token:", request.user);
+          const user = await User.findOne({ email });
+          console.log("Usuário encontrado no banco:", user); // LOG PARA VER SE O USUÁRIO EXISTE
+          if (!user) {
+            console.log("Usuário não encontrado no banco.");
+            return reply.status(404).send({ message: "Usuário não encotrado!" });
+          }
+  
+          if (newEmail) user.email = newEmail;
+          if (password) user.password = password;
+  
+          await user.save();
+          return reply.send({ message: "Perfil atualizado com sucesso!" });
+        } catch (error) {
+          console.error("Erro na autenticação:", error);
+          return reply
+            .status(500)
+            .send({ message: "Erro ao atualizar o perfil!" });
+        }
+      }
+    );
+
   // Buscar usuarios
   app.get("/user/search", async (request, reply) => {
     try {
@@ -78,40 +113,6 @@ export default async function userRoutes(app: FastifyInstance) {
     }
   });
 
-  // Atualizar perfil do usuário
-  app.put(
-    "/user/profile",
-    { preHandler: [app.authenticate] },
-    async (request, reply) => {
-      try {
-        const { email } = request.user as { email: string };
-        const { newEmail, password } = request.body as {
-          newEmail?: string;
-          password?: string;
-        };
-        console.log("Token verificado!");
-
-        console.log("Usuário no token:", request.user);
-        const user = await User.findOne({ email });
-        console.log("Usuário encontrado no banco:", user); // LOG PARA VER SE O USUÁRIO EXISTE
-        if (!user) {
-          console.log("Usuário não encontrado no banco.");
-          return reply.status(404).send({ message: "Usuário não encotrado!" });
-        }
-
-        if (newEmail) user.email = newEmail;
-        if (password) user.password = password;
-
-        await user.save();
-        return reply.send({ message: "Perfil atualizado com sucesso!" });
-      } catch (error) {
-        console.error("Erro na autenticação:", error);
-        return reply
-          .status(500)
-          .send({ message: "Erro ao atualizar o perfil!" });
-      }
-    }
-  );
 
   // Listar amigos do usuário
   app.get(
@@ -119,9 +120,9 @@ export default async function userRoutes(app: FastifyInstance) {
     { preHandler: [app.authenticate] },
     async (request, reply) => {
       try {
-        const { email } = request.user as { email: string };
+        const { nickname } = request.user as { nickname: string };
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ nickname });
         if (!user) {
           return reply.status(404).send({ message: "Usuário não encontrado!" });
         }
@@ -301,6 +302,49 @@ export default async function userRoutes(app: FastifyInstance) {
     }
   )
 
+  app.post(
+    "/user/activities-add", { preHandler: [app.authenticate] },
+  async (request, reply) => {
+    try {
+      const body = request.body as {
+     name: string;
+     classe: string;
+     points: number;
+     isRecurring?: boolean;
+     date: string;
+     description: string;
+   };
+
+     const { name, classe, points, isRecurring, date, description } = body;
+
+     if (!name || !classe || !points || !date || !description) {
+       return reply.status(400).send({ message: "Todos os campos são obrigatórios!" });
+     }
+ 
+     const newActivity = new Activity({
+       userId: request.user?.id, 
+       name, 
+       classe, 
+       points, 
+       isRecurring: isRecurring || false,
+       date: new Date(date),
+       description,
+     });
+ 
+     await newActivity.save();
+
+     await User.findByIdAndUpdate(request.user?.id, {
+       $push: { activities: newActivity._id }
+     });
+ 
+     return reply.send({ message: "Atividade adicionada com sucesso!", activity: newActivity });
+   } catch (error) {
+     console.error("Erro ao adicionar atividade:", error);
+     return reply.status(500).send({ message: "Erro ao adicionar atividade", error });
+   }
+ });
+
+  // estatisticas do usuario
   app.get(
     "/user/statistics", { preHandler: [app.authenticate] },
     async (request, reply) => {

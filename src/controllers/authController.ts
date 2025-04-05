@@ -8,7 +8,7 @@ import "../types"
 export default async function authRoutes(app: FastifyInstance) {
   
   app.post("/register", async (request, reply) => {
-    const { nickname, email, password, isPrivate } = request.body as { nickname: string, email: string, password: string, isPrivate?: boolean };
+    const { nickname, email, password } = request.body as { nickname: string, email: string, password: string };
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -24,8 +24,7 @@ export default async function authRoutes(app: FastifyInstance) {
     const newUser = new User({ 
       nickname,
       email, 
-      password: hashedPassword, 
-      isPrivate: isPrivate ?? false 
+      password: hashedPassword,
     });
 
     await newUser.save()
@@ -80,50 +79,4 @@ export default async function authRoutes(app: FastifyInstance) {
     }
   });
 
-
-  app.get('/profile', async (request, reply) => {""
-    try {
-      const token = request.cookies.auth_token;
-      if (!token) {
-        return reply.status(401).send({ message: "Não autenticado!" })
-      }""
-
-      const decoded = jwt.verify(token, "supersecretkey") as { email: string};
-      const user = await User.findOne({ email: decoded.email });
-
-      if (!user) {
-        return reply.status(401).send({ message: "Usuário não encontrado " });
-      }
-
-      return reply.send({ message: "Acesso permitido!", user });
-    } catch (error) {
-      return reply.status(401).send({ message: 'Token inválido ou não fornecido!' })
-    }
-  })
-
-  app.post("/add-points", { preHandler: [app.authenticate] }, async (request, reply) => {
-    try {
-     
-      const { points } = request.body as { points: number };
-
-      const user = await User.findOne({ email: (request.user as { email: string }).email })
-      if (!user) {
-        return reply.status(404).send({ message: "Usuário não encontrado!" });
-      }
-
-      user.points += points;
-
-      while (user.points >= user.level * 10) {
-        user.points -= user.level * 10;
-        user.level += 1;
-      }
-
-      await user.save();
-
-      return { message: "Pontos adicionados!", user };
-    } catch (error) {
-      return reply.status(500).send({ message: "Erro ao adicionar pontos!" });
-    }
-
-  })
 }

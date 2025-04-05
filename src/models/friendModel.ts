@@ -6,7 +6,7 @@ interface IFriend extends Document {
 }
 
 const FriendSchema: Schema = new Schema ({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   friendId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 });
 

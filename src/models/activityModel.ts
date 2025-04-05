@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface IActivity extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
-  category: string;
+  classe: string;
   date: Date;
   isRecurring: boolean;
   completed: boolean;
@@ -15,7 +15,7 @@ export interface IActivity extends Document {
 const ActivitySchema: Schema = new Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
   name: { type: String, required: true },
-  category: { type: String, enum:["Trabalho", "Saúde", "Bem-estar", "Atividade Física", "Outro"], required: true},
+  classe: { type: String, enum:["Saúde", "Atividade Física", "Lazer",  "Esporte", "Trabalho/Estudo", "Casa/Organização"], required: true},
   date: { type: Date, required: true },
   isRecurring: { type: Boolean, default: false },
   completed: { type: Boolean, default: false },

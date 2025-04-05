@@ -16,11 +16,12 @@ export async function authenticate(request: AuthenticatedRequest, reply: Fastify
       return reply.status(401).send({ message: "Token não fornecido!" });
     }
 
-    const decoded = jwt.verify(token, "supersecretkey") as { id: string; email: string} // Usando a verificação de JWT do fastify
+    const decoded = jwt.verify(token, "supersecretkey") as { id: string; email: string; nickname: string} // Usando a verificação de JWT do fastify
    
     request.user = {
       id: new mongoose.Types.ObjectId(decoded.id),
       email: decoded.email,
+      nickname: decoded.nickname
     };
  // Definindo o ID do usuário no request
 
