@@ -8,12 +8,12 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { FastifyRequest, FastifyReply } from "fastify";
 import fastifyCors from '@fastify/cors';
 import { authenticate } from "./middlewares/authenticate";
-import fastifyMultipart = require("@fastify/multipart");
+import fastifyMultipart  from "@fastify/multipart";
 
 dotenv.config();
 
 const app = fastify({ logger: true });
-app.addContentTypeParser('multipart/form-data', function (request, payload, done) {   done(null) })
+
 
 app.register(fastifyCookie, {
   secret:"supersecretkey"

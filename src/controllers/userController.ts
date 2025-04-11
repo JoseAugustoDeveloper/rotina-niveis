@@ -6,22 +6,14 @@ import { calculateWeeklyStats } from "../utils/statistics";
 import Activity from "../models/activityModel";
 import { FastifyRequest, FastifyReply } from "fastify";
 import type mongoose from "mongoose";
-import multer from "fastify-multer";
-import path from "path"
-import { AddContentTypeParser } from "fastify";
 
 
-const storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-      callback(null, path.resolve("uploads"))
-  },
+import fs from 'fs';
+import util from 'util';
+import { pipeline } from 'stream'
 
-    filename: (req, file, callback) => {
-    const time = new Date().getTime();
+const pump = util.promisify(pipeline)
 
-    callback(null, `${time}_${file.originalname}` )
-  }
-})
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -31,7 +23,7 @@ declare module "fastify" {
     ) => Promise<void>;
   }
 }
-const upload = multer({ storage})
+
 
 export default async function userRoutes(app: FastifyInstance) {
   // Buscar perfil do usuário
@@ -111,15 +103,17 @@ export default async function userRoutes(app: FastifyInstance) {
 
   // Foto de perfil
  
-  app.post("/user/upload", { preHandler: upload.single('file') } , async (request, reply) => {
-    const file = await request.file()
-    console.log("arquivo recebido:", file)
-    
-    if (!file) {
-      return reply.status(400).send({ error: 'Nenhum arquivo enviado' });
-    }
+  app.post("/user/upload", async (request, reply) => {
+    const file = await request.file(); // Obtém um único arquivo
 
-    return reply.send({ filename: file.filename })
+        if (!file) {
+            return reply.status(400).send({ error: "Nenhum arquivo enviado" });
+        }
+
+        const filePath = `./uploads/${file.filename}`;
+        await pipeline(file.file, fs.createWriteStream(filePath)); // Salva o arquivo
+
+        return reply.send({ message: "Arquivo enviado com sucesso", filename: file.filename });
   })
 
   // Buscar usuarios
