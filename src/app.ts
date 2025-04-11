@@ -13,6 +13,7 @@ import fastifyMultipart = require("@fastify/multipart");
 dotenv.config();
 
 const app = fastify({ logger: true });
+app.addContentTypeParser('multipart/form-data', function (request, payload, done) {   done(null) })
 
 app.register(fastifyCookie, {
   secret:"supersecretkey"

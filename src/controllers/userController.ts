@@ -8,6 +8,8 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import type mongoose from "mongoose";
 import multer from "fastify-multer";
 import path from "path"
+import { AddContentTypeParser } from "fastify";
+
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
