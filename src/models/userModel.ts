@@ -14,6 +14,7 @@ interface IUser extends Document {
   friendRequests: mongoose.Types.ObjectId[];
   achievements: string[];
   activities: IActivity[];
+  fotoPerfil: string;
 }
 
 const UserSchema: Schema = new Schema({
@@ -27,8 +28,8 @@ const UserSchema: Schema = new Schema({
   friends: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
   friendRequests: [{ type: mongoose.Schema.ObjectId, ref: "User"}],
   achievements: { type: [String], default: [] },
-  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }]
-  
+  activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
+  fotoPerfil: [{ type: String}]
 });
 
 const User = mongoose.model<IUser>("User", UserSchema);
