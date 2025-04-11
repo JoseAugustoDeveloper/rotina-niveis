@@ -95,9 +95,9 @@ export default async function userRoutes(app: FastifyInstance) {
     );
 
   // Foto de perfil
-  app.addContentTypeParser('multipart/form-data', function (request, payload, done) {   done(null) })
+
     app.post("/user/upload", {preHandler: upload.single('file')}, async (request: any, response) => {
-    console.log(request.file)
+    console.log("arquivo", request.file)
     response.send({sucess: true})
   })
 

@@ -1,16 +1,16 @@
 import multer from "fastify-multer";
 import path from "node:path";
 
-const allowedExtname = ['.pngm', '.webp', '.png', '.jpeg']
+const allowedExtname = ['.webp', '.png', '.jpeg', '.jpg']
 const maxSize = 1024 * 1024 * 5
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    if(!allowedExtname.includes(path.extname(file.originalname).toLocaleLowerCase())) return cb(Error("O arquivo deve ser do tipo: png, jpeg ou webp"), '')
-      cb(null, "uploads/");
+  destination: function (req, file, callback) {
+    if(!allowedExtname.includes(path.extname(file.originalname).toLocaleLowerCase())) return callback(Error("O arquivo deve ser do tipo: png, jpeg ou webp"), '')
+      callback(null, "uploads/");
   },
-  filename: function (requ, file, cb) {
-    cb(null, 'produto' + Date.now() + path.extname(file.originalname));
+  filename: function (req, file, callback) {
+    callback(null, 'produto' + Date.now() + path.extname(file.originalname));
   }
 })
 

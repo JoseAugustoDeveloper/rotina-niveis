@@ -4,21 +4,19 @@ import mongoose from "mongoose"
 import authRoutes from "./controllers/authController";
 import userRoutes from "./controllers/userController";
 import fastifyCookie from "@fastify/cookie"
-import jwt, { JwtPayload } from "jsonwebtoken";
-import { FastifyRequest, FastifyReply } from "fastify";
+import { JwtPayload } from "jsonwebtoken";
 import fastifyCors from '@fastify/cors';
 import { authenticate } from "./middlewares/authenticate";
-// import fastifyMultipart  from "@fastify/multipart";
+
+
 
 dotenv.config();
 
 const app = fastify({ logger: true });
-
-
+app.addContentTypeParser('multipart/form-data', function (request, payload, done) { done(null) })
 app.register(fastifyCookie, {
-  secret:"supersecretkey"
+  secret: "supersecretkey"
 });
-// app.register(fastifyMultipart)
 app.register(authRoutes)
 app.register(userRoutes);
 app.register(fastifyCors, {
@@ -34,32 +32,21 @@ mongoose
   .then(() => app.log.info("✅ Conectado ao MongoDB!"))
   .catch(err => app.log.error("❌ Erro ao conectar ao MongoDB:", err));
 
-  const SECRET_KEY = process.env.JWT_SECRET || "supersecretkey"
- 
-  interface AuthTokenPayload extends JwtPayload {
-    id: string;
-    email: string;
-  }
+const SECRET_KEY = process.env.JWT_SECRET || "supersecretkey"
 
-  declare module "fastify" {
-    interface FastifyRequest {
-      userId?: string;
-    }
+interface AuthTokenPayload extends JwtPayload {
+  id: string;
+  email: string;
+}
+
+declare module "fastify" {
+  interface FastifyRequest {
+    userId?: string;
   }
-  // app.decorate("authenticate", async (request: FastifyRequest , reply: FastifyReply) => {
-  //   console.log("Cookies recebidos:", request.cookies);
-  //   console.log("Headers recebidos:", request.headers);
-  //   const token = request.cookies.auth_token || request.headers.authorization?.replace("Bearer ", "");
-  //   console.log("Token extraído:", token);
-  //   try {
-  //     const decoded = jwt.verify(token as string, "supersecretkey" ) as unknown as AuthTokenPayload;
-  //     request.user = { id: new mongoose.Types.ObjectId(decoded.id), email: decoded.email}
-  //   } catch (error) {
-  //     reply.status(401).send({ message: "Token inválido ou não fornecido!"})
-  //   }
-  // })
-  
-  app.decorate("authenticate", authenticate as any)
+}
+
+
+app.decorate("authenticate", authenticate as any)
 
 
 const start = async () => {
@@ -69,7 +56,7 @@ const start = async () => {
     console.log("🚀 Servidor rodando em http://localhost:${port}")
   }
   catch (error) {
-   app.log.error(error);
+    app.log.error(error);
     process.exit(1)
 
   }
