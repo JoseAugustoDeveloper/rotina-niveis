@@ -6,14 +6,7 @@ import { calculateWeeklyStats } from "../utils/statistics";
 import Activity from "../models/activityModel";
 import { FastifyRequest, FastifyReply } from "fastify";
 import type mongoose from "mongoose";
-
-
-import fs from 'fs';
-import util from 'util';
-import { pipeline } from 'stream'
-
-const pump = util.promisify(pipeline)
-
+import upload from "../config/configMulter";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -102,18 +95,10 @@ export default async function userRoutes(app: FastifyInstance) {
     );
 
   // Foto de perfil
- 
-  app.post("/user/upload", async (request, reply) => {
-    const file = await request.file(); // Obtém um único arquivo
-
-        if (!file) {
-            return reply.status(400).send({ error: "Nenhum arquivo enviado" });
-        }
-
-        const filePath = `./uploads/${file.filename}`;
-        await pipeline(file.file, fs.createWriteStream(filePath)); // Salva o arquivo
-
-        return reply.send({ message: "Arquivo enviado com sucesso", filename: file.filename });
+  app.addContentTypeParser('multipart/form-data', function (request, payload, done) {   done(null) })
+    app.post("/user/upload", {preHandler: upload.single('file')}, async (request: any, response) => {
+    console.log(request.file)
+    response.send({sucess: true})
   })
 
   // Buscar usuarios

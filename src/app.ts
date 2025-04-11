@@ -8,7 +8,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { FastifyRequest, FastifyReply } from "fastify";
 import fastifyCors from '@fastify/cors';
 import { authenticate } from "./middlewares/authenticate";
-import fastifyMultipart  from "@fastify/multipart";
+// import fastifyMultipart  from "@fastify/multipart";
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ const app = fastify({ logger: true });
 app.register(fastifyCookie, {
   secret:"supersecretkey"
 });
-app.register(fastifyMultipart)
+// app.register(fastifyMultipart)
 app.register(authRoutes)
 app.register(userRoutes);
 app.register(fastifyCors, {
