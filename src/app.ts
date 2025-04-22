@@ -7,6 +7,9 @@ import fastifyCookie from "@fastify/cookie"
 import { JwtPayload } from "jsonwebtoken";
 import fastifyCors from '@fastify/cors';
 import { authenticate } from "./middlewares/authenticate";
+import fastifyStatic from '@fastify/static';
+import path from "node:path";
+
 
 
 
@@ -17,13 +20,17 @@ app.addContentTypeParser('multipart/form-data', function (request, payload, done
 app.register(fastifyCookie, {
   secret: "supersecretkey"
 });
-app.register(authRoutes)
+app.register(authRoutes);
 app.register(userRoutes);
 app.register(fastifyCors, {
   origin: '   http://localhost:5173', // Permitir apenas seu front-end específico
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
   allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
   credentials: true
+});
+app.register(fastifyStatic, {
+  root: path.join(__dirname, "..", "uploads"),
+  prefix: "/uploads/",
 });
 
 const mongoUri = process.env.MONG_URI || "mongodb://localhost/rotina-niveis";

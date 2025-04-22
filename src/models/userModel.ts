@@ -29,7 +29,7 @@ const UserSchema: Schema = new Schema({
   friendRequests: [{ type: mongoose.Schema.ObjectId, ref: "User"}],
   achievements: { type: [String], default: [] },
   activities: [{ type: mongoose.Schema.Types.ObjectId, ref: "Activity" }],
-  fotoPerfil: [{ type: String}]
+  fotoPerfil: { type: String, default: ""}
 });
 
 const User = mongoose.model<IUser>("User", UserSchema);

@@ -7,6 +7,11 @@ import Activity from "../models/activityModel";
 import { FastifyRequest, FastifyReply } from "fastify";
 import type mongoose from "mongoose";
 import upload from "../config/configMulter";
+import path from "path";
+import fs from "fs";
+import { pipeline } from "stream";
+import util from "util";
+
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -59,46 +64,70 @@ export default async function userRoutes(app: FastifyInstance) {
     }
   );
 
-    // Atualizar perfil do usuário
-    app.put(
-      "/user/perfil",
-      { preHandler: [app.authenticate] },
-      async (request, reply) => {
-        try {
-          const { email } = request.user as { email: string };
-          const { newEmail, password } = request.body as {
-            newEmail?: string;
-            password?: string;
-          };
-          console.log("Token verificado!");
-  
-          console.log("Usuário no token:", request.user);
-          const user = await User.findOne({ email });
-          console.log("Usuário encontrado no banco:", user); // LOG PARA VER SE O USUÁRIO EXISTE
-          if (!user) {
-            console.log("Usuário não encontrado no banco.");
-            return reply.status(404).send({ message: "Usuário não encotrado!" });
-          }
-  
-          if (newEmail) user.email = newEmail;
-          if (password) user.password = password;
-  
-          await user.save();
-          return reply.send({ message: "Perfil atualizado com sucesso!" });
-        } catch (error) {
-          console.error("Erro na autenticação:", error);
-          return reply
-            .status(500)
-            .send({ message: "Erro ao atualizar o perfil!" });
+  // Atualizar perfil do usuário
+  app.put(
+    "/user/perfil",
+    { preHandler: [app.authenticate] },
+    async (request, reply) => {
+      try {
+        const { email } = request.user as { email: string };
+        const { newEmail, password } = request.body as {
+          newEmail?: string;
+          password?: string;
+        };
+        console.log("Token verificado!");
+
+        console.log("Usuário no token:", request.user);
+        const user = await User.findOne({ email });
+        console.log("Usuário encontrado no banco:", user); // LOG PARA VER SE O USUÁRIO EXISTE
+        if (!user) {
+          console.log("Usuário não encontrado no banco.");
+          return reply.status(404).send({ message: "Usuário não encotrado!" });
         }
+
+        if (newEmail) user.email = newEmail;
+        if (password) user.password = password;
+
+        await user.save();
+        return reply.send({ message: "Perfil atualizado com sucesso!" });
+      } catch (error) {
+        console.error("Erro na autenticação:", error);
+        return reply
+          .status(500)
+          .send({ message: "Erro ao atualizar o perfil!" });
       }
-    );
+    }
+  );
 
   // Foto de perfil
+  const pump = util.promisify(pipeline);
 
-    app.post("/user/upload", {preHandler: upload.single('file')}, async (request: any, response) => {
-    console.log("arquivo", request.file)
-    response.send({sucess: true})
+  app.post("/user/upload", { preHandler: upload.single('file') }, async (request: any, response) => {
+    try {
+      const file = request.file;
+      const userId = request.user?.id
+
+      if(!file){
+        return response.status(400).send({ message: "Nenhum arquivo encontrado." });
+      }
+
+      const fileName = `${Date.now()}-${file.filename}`;
+      const filePath = path.join(__dirname, "..", "uploads", fileName);
+      const fileStream = fs.createWriteStream(filePath);
+
+      await pump(file.file, fileStream);
+
+      const url = `/uploads/${fileName}`;
+
+      await User.findByIdAndUpdate(userId, {
+        fotoPerfil: url,
+      });
+
+      return response.send({ sucess: true, url })
+    } catch (error) {
+      console.error("Erro ao salvar foto:", error);
+      return response.status(500).send({ message: "Erro interno no servidor." });
+    }
   })
 
   // Buscar usuarios
@@ -293,10 +322,10 @@ export default async function userRoutes(app: FastifyInstance) {
     async (request, reply) => {
       console.log("Request recebido para /user/activities");
       console.log("User ID:", request.user?.id);
-    
+
       try {
         const user = await User.findById(request.user?.id).populate("activities", "date name category points");
-        if(!user) {
+        if (!user) {
           return reply.status(404).send({ message: "Usuário não encontrado" });
         }
 
@@ -312,45 +341,45 @@ export default async function userRoutes(app: FastifyInstance) {
 
   app.post(
     "/user/activities-add", { preHandler: [app.authenticate] },
-  async (request, reply) => {
-    try {
-      const body = request.body as {
-     name: string;
-     classe: string;
-     points: number;
-     isRecurring?: boolean;
-     date: string;
-     description: string;
-   };
+    async (request, reply) => {
+      try {
+        const body = request.body as {
+          name: string;
+          classe: string;
+          points: number;
+          isRecurring?: boolean;
+          date: string;
+          description: string;
+        };
 
-     const { name, classe, points, isRecurring, date, description } = body;
+        const { name, classe, points, isRecurring, date, description } = body;
 
-     if (!name || !classe || !points || !date || !description) {
-       return reply.status(400).send({ message: "Todos os campos são obrigatórios!" });
-     }
- 
-     const newActivity = new Activity({
-       userId: request.user?.id, 
-       name, 
-       classe, 
-       points, 
-       isRecurring: isRecurring || false,
-       date: new Date(date),
-       description,
-     });
- 
-     await newActivity.save();
+        if (!name || !classe || !points || !date || !description) {
+          return reply.status(400).send({ message: "Todos os campos são obrigatórios!" });
+        }
 
-     await User.findByIdAndUpdate(request.user?.id, {
-       $push: { activities: newActivity._id }
-     });
- 
-     return reply.send({ message: "Atividade adicionada com sucesso!", activity: newActivity });
-   } catch (error) {
-     console.error("Erro ao adicionar atividade:", error);
-     return reply.status(500).send({ message: "Erro ao adicionar atividade", error });
-   }
- });
+        const newActivity = new Activity({
+          userId: request.user?.id,
+          name,
+          classe,
+          points,
+          isRecurring: isRecurring || false,
+          date: new Date(date),
+          description,
+        });
+
+        await newActivity.save();
+
+        await User.findByIdAndUpdate(request.user?.id, {
+          $push: { activities: newActivity._id }
+        });
+
+        return reply.send({ message: "Atividade adicionada com sucesso!", activity: newActivity });
+      } catch (error) {
+        console.error("Erro ao adicionar atividade:", error);
+        return reply.status(500).send({ message: "Erro ao adicionar atividade", error });
+      }
+    });
 
   // estatisticas do usuario
   app.get(
@@ -358,7 +387,7 @@ export default async function userRoutes(app: FastifyInstance) {
     async (request, reply) => {
       try {
         const user = await User.findById(request.user?.id);
-        if(!user) {
+        if (!user) {
           return reply.status(404).send({ message: "Usuário não encontrado" });
         }
 
@@ -366,7 +395,7 @@ export default async function userRoutes(app: FastifyInstance) {
         startDate.setDate(startDate.getDate() - 7);
 
         const activities = await Activity.find({ userId: user._id, date: { $gte: startDate } });
-        
+
         const weeklyStats = calculateWeeklyStats(activities); // Lógica de agregação semanal/mensal
         return reply.send(weeklyStats);
       } catch (error) {
