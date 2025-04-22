@@ -102,7 +102,7 @@ export default async function userRoutes(app: FastifyInstance) {
   // Foto de perfil
   const pump = util.promisify(pipeline);
 
-  app.post("/user/upload", { preHandler: upload.single('file') }, async (request: any, response) => {
+  app.post("/user/upload", {  preHandler: [app.authenticate, upload.single("file")] }, async (request: any, response) => {
     try {
       const file = request.file;
       const userId = request.user?.id
@@ -331,7 +331,7 @@ export default async function userRoutes(app: FastifyInstance) {
 
         console.log("Atividades encontradas:", user.activities);
 
-        const recentActivities = user.activities.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
+        const recentActivities = user.activities.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 3);
         return reply.send(recentActivities);
       } catch (error) {
         return reply.status(500).send({ message: "Erro ao buscar atividades!" });
