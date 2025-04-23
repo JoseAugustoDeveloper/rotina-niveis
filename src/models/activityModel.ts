@@ -15,7 +15,7 @@ export interface IActivity extends Document {
 const ActivitySchema: Schema = new Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
   name: { type: String, required: true },
-  classe: { type: String, enum:["Saúde", "Atividade Física", "Lazer",  "Esporte", "Trabalho/Estudo", "Casa/Organização"], required: true},
+  classe: { type: String, enum:["Saúde", "AtividadeFísica", "Lazer",  "Esporte", "TrabalhoEstudo", "Casarun Organização"], required: true},
   date: { type: Date, required: true },
   isRecurring: { type: Boolean, default: false },
   completed: { type: Boolean, default: false },
